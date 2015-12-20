@@ -1,0 +1,116 @@
+---
+title: "Course Project 1"
+output: html_document
+---
+
+This document answers all questions assigned in the first course project for the Reproducible Research Coursera course
+
+**Loading and preprocessing the data**
+
+This code reads in the data:
+
+```{r, echo=TRUE}
+activity<-read.csv("activity.csv")
+```
+
+**What is the mean total number of steps taken per day?**
+
+This code calculates the total number of steps per day:
+
+```{r, echo=TRUE}
+total.steps<-tapply(activity$steps, activity$date, sum, na.rm=TRUE)
+total.steps<-as.data.frame(total.steps)
+total.steps
+```
+
+This code creates a histogram of the total number of steps per day:
+
+```{r, echo=TRUE}
+hist(total.steps$total.steps,xlab="Number of Steps",ylab="Number of Days",
+     main="Totals Steps Per Day",breaks=10,col="green")
+```
+
+This code calculates the mean and median of the total number of steps per day:
+
+```{r, echo=TRUE}
+#Mean
+mean(total.steps$total.steps)
+#Median
+median(total.steps$total.steps)
+```
+
+**What is the average daily activity pattern?**
+
+This codes constructs a plot of the average number of steps taken during each interval:
+
+```{r,echo=TRUE}
+mean.steps.interval<-tapply(activity$steps, activity$interval, mean, na.rm=TRUE)
+activity1<-data.frame(activity$interval[1:288],mean.steps.interval)
+plot(activity1,xlab="Interval",ylab="Mean Number of Steps",
+     main="Average Number of Steps Taken in Each 5 Minute Interval")
+```
+
+This code finds the interval during which the maximum average number of steps occurs:
+
+```{r, echo=TRUE}
+#Output contains interval followed by position in data frame
+which.max(mean.steps.interval)
+```
+
+**Imputing missing values**
+
+This code calculates the number of missing values in the dataset:
+
+```{r, echo=TRUE}
+sum(is.na(activity$steps))
+```
+
+This code fills in the missing values for each day with the average number of steps taken that day:
+
+```{r, echo=TRUE}
+mean.per.day<-tapply(activity$steps, activity$date, mean)
+mean.per.day[is.na(mean.per.day)]<-0
+replace<-rep(mean.per.day, each=288)
+activity$steps[is.na(activity$steps)] <- replace[is.na(activity$steps)]
+```
+
+This code creates a histogram and calculates the mean and median of the total number of steps per day adjusted for the missing values:
+
+```{r, echo=TRUE}
+total.steps<-tapply(activity$steps, activity$date, sum, na.rm=TRUE)
+total.steps<-as.data.frame(total.steps)
+hist(total.steps$total.steps,xlab="Number of Steps",ylab="Number of Days",
+     main="Totals Steps Per Day",breaks=10,col="green")
+#Mean
+mean(total.steps$total.steps)
+#Median
+median(total.steps$total.steps)
+```
+
+This method of imputing the missing data has no effect of the estimates made earlier in the assignment.
+
+**Are there differences in activity patterns between weekdays and weekends?**
+
+This code assigns each day of activity as either a weekday or weekend:
+
+```{r, echo=TRUE}
+activity$day<-weekdays(as.Date(activity$date))
+activity$day.type<-ifelse(activity$day == "Saturday"|activity$day == "Sunday",
+                          "Weekend", "Weekday")
+```
+
+This codes constructs a plot of the average number of steps taken during each interval, separated by weekday and weekend:
+
+```{r, echo=TRUE}
+par(mfrow=c(2,1))
+activity.weekday<-subset(activity,activity$day.type=="Weekday")
+mean.steps.weekday<-tapply(activity.weekday$steps, activity.weekday$interval, mean)
+activity1.weekday<-data.frame(activity$interval[1:288],mean.steps.weekday)
+plot(activity1.weekday,xlab="Interval",ylab="Mean Number of Steps",
+     main="Average Number of Steps Taken in Each 5 Minute Interval (Weekdays)")
+activity.weekend<-subset(activity,activity$day.type=="Weekend")
+mean.steps.weekend<-tapply(activity.weekend$steps, activity.weekend$interval, mean)
+activity1.weekend<-data.frame(activity$interval[1:288],mean.steps.weekend)
+plot(activity1.weekend,xlab="Interval",ylab="Mean Number of Steps",
+     main="Average Number of Steps Taken in Each 5 Minute Interval (Weekends)")
+```
